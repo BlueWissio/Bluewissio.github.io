@@ -325,10 +325,9 @@ input::placeholder {
 
 </main>
 
+
 <script>
-
-function sendMessage() {
-
+async function sendMessage() {
     const input = document.getElementById("message");
     const chat = document.getElementById("chat");
     const text = input.value.trim();
@@ -337,19 +336,51 @@ function sendMessage() {
 
     document.getElementById("welcome")?.remove();
 
-    const message = document.createElement("div");
-    message.className = "message user";
-    message.textContent = "YOU // " + text;
-
-    chat.appendChild(message);
+    // Display your message
+    const userMessage = document.createElement("div");
+    userMessage.className = "message user";
+    userMessage.textContent = "YOU // " + text;
+    chat.appendChild(userMessage);
 
     input.value = "";
+
+    // Loading indicator
+    const loading = document.createElement("div");
+    loading.className = "message";
+    loading.textContent = "ORION // THINKING...";
+    chat.appendChild(loading);
+
     chat.scrollTop = chat.scrollHeight;
 
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:5000/chat",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: text
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        loading.textContent = response.ok
+            ? "ORION // " + data.reply
+            : "ERROR // " + data.error;
+
+    } catch (error) {
+        loading.textContent =
+            "CONNECTION ERROR // Could not reach ORION's brain.";
+    }
+
+    chat.scrollTop = chat.scrollHeight;
 }
 
 function newChat() {
-
     document.getElementById("chat").innerHTML = `
         <div class="welcome" id="welcome">
             <div class="core">◈</div>
@@ -358,10 +389,9 @@ function newChat() {
             <p>AWAITING CONNECTION TO AI CORE...</p>
         </div>
     `;
-
 }
-
 </script>
+
 
 </body>
 </html>
